@@ -2,6 +2,7 @@ import { useState, useCallback } from 'react'
 import { useDropzone } from 'react-dropzone'
 import { Upload, FileText, X, Loader2, AlertCircle } from 'lucide-react'
 import axios from 'axios'
+import { apiUrl } from '../lib/api'
 
 export default function UploadSection({ onResult, isAnalyzing, setIsAnalyzing }) {
   const [file, setFile] = useState(null)
@@ -32,7 +33,7 @@ export default function UploadSection({ onResult, isAnalyzing, setIsAnalyzing })
         setProgress((p) => { if (p >= 90) { clearInterval(iv); return 90 } return p + Math.random() * 12 })
       }, 400)
 
-      const res = await axios.post('/api/analyze', formData, {
+      const res = await axios.post(apiUrl('/analyze'), formData, {
         headers: { 'Content-Type': 'multipart/form-data' },
       })
       clearInterval(iv)

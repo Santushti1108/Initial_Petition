@@ -1,10 +1,8 @@
 flask
 flask-cors
 PyPDF2
-spacy
 numpy
 networkx
 scikit-learn
 nltk
-rouge-score
 gunicorn

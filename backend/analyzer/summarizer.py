@@ -9,6 +9,15 @@ import nltk
 _nltk_data_dir = os.path.join(os.path.dirname(os.path.dirname(__file__)), 'nltk_data')
 if os.path.isdir(_nltk_data_dir):
     nltk.data.path.insert(0, _nltk_data_dir)
+else:
+    _nltk_data_dir = os.path.join('/tmp', 'nltk_data')
+    os.makedirs(_nltk_data_dir, exist_ok=True)
+    nltk.data.path.insert(0, _nltk_data_dir)
+    try:
+        nltk.data.find('tokenizers/punkt_tab')
+    except LookupError:
+        nltk.download('punkt_tab', download_dir=_nltk_data_dir, quiet=True)
+        nltk.download('punkt', download_dir=_nltk_data_dir, quiet=True)
 
 from nltk.tokenize import sent_tokenize
 
