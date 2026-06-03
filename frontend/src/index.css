@@ -1,0 +1,159 @@
+@import "tailwindcss";
+
+@theme {
+  --color-ink: #000000;
+  --color-snow: #ffffff;
+  --color-canvas: #f8f8f8;
+  --color-fog: #efefef;
+  --color-pebble: #d9d9d9;
+  --color-graphite: #636363;
+  --color-slate: #959595;
+  --color-steel: #aeaeae;
+  --color-ash: #7c7c7c;
+
+  --color-rose-quartz: #c679c4;
+  --color-marigold: #ffb005;
+  --color-signal-blue: #0358f7;
+  --color-hot-pink: #fd02f5;
+  --color-spectrum-red: #fa3d1d;
+
+  --font-display: "DM Sans", system-ui, -apple-system, sans-serif;
+
+  --shadow-card: 0px 0px 8px 0px rgba(0, 0, 0, 0.08);
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  font-family: var(--font-display);
+  -webkit-font-smoothing: antialiased;
+  background: #f8f8f8;
+  color: #000000;
+}
+
+/* Frosted card surface */
+.frosted-card {
+  background: rgba(255, 255, 255, 0.9);
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+  border-radius: 30px;
+  padding: 32px;
+  box-shadow: 0px 0px 8px 0px rgba(0, 0, 0, 0.08);
+}
+
+/* Spectrum gradient */
+.spectrum-gradient {
+  background: linear-gradient(90deg, #c679c4 0%, #fa3d1d 25%, #ffb005 50%, #e1e1fe 75%, #0358f7 100%);
+}
+
+.spectrum-glow {
+  background: linear-gradient(90deg, #c679c4 0%, #fa3d1d 25%, #ffb005 50%, #e1e1fe 75%, #0358f7 100%);
+  opacity: 0.25;
+  filter: blur(60px);
+}
+
+/* Display text — featherweight */
+.text-display {
+  font-size: 72px;
+  font-weight: 300;
+  line-height: 1.11;
+  letter-spacing: -2.88px;
+  color: #000000;
+}
+.text-heading-lg {
+  font-size: 54px;
+  font-weight: 300;
+  line-height: 1.17;
+  letter-spacing: -2.16px;
+  color: #000000;
+}
+.text-heading {
+  font-size: 50px;
+  font-weight: 300;
+  line-height: 1.18;
+  letter-spacing: -2px;
+  color: #000000;
+}
+.text-heading-sm {
+  font-size: 22px;
+  font-weight: 400;
+  line-height: 1.25;
+  letter-spacing: -0.44px;
+  color: #000000;
+}
+
+@media (max-width: 768px) {
+  .text-display { font-size: 42px; letter-spacing: -1.5px; }
+  .text-heading-lg { font-size: 36px; letter-spacing: -1.2px; }
+  .text-heading { font-size: 32px; letter-spacing: -1px; }
+}
+
+/* Neutral button */
+.btn-neutral {
+  background: #d9d9d9;
+  color: rgba(0, 0, 0, 0.85);
+  border-radius: 30px;
+  font-size: 14px;
+  font-weight: 500;
+  padding: 12px 28px;
+  border: none;
+  cursor: pointer;
+  transition: background-color 0.2s ease, color 0.2s ease;
+}
+.btn-neutral:hover {
+  background: #000000;
+  color: #ffffff;
+}
+
+/* Ghost pill */
+.btn-ghost {
+  background: transparent;
+  color: rgba(0, 0, 0, 0.85);
+  border-radius: 9999px;
+  font-size: 14px;
+  font-weight: 500;
+  padding: 10px 20px;
+  border: none;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+.btn-ghost:hover {
+  background: rgba(0, 0, 0, 0.04);
+}
+
+/* Animations */
+@keyframes fade-up {
+  from { opacity: 0; transform: translateY(24px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.animate-fade-up {
+  animation: fade-up 0.6s ease-out forwards;
+}
+
+@keyframes float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-8px); }
+}
+.animate-float {
+  animation: float 4s ease-in-out infinite;
+}
+
+@keyframes chroma-sweep {
+  0% { background-position: 0% 50%; }
+  100% { background-position: 200% 50%; }
+}
+.animate-chroma {
+  background-size: 200% 100%;
+  animation: chroma-sweep 4s cubic-bezier(0.77, 0, 0.175, 1) infinite;
+}
+
+/* Progress ring */
+.progress-ring-bg { stroke: #efefef; }
+.progress-ring-fill { transition: stroke-dashoffset 1.2s ease-out; }
+
+/* Score colors */
+.score-good { color: #22c55e; }
+.score-mid { color: #eab308; }
+.score-bad { color: #fa3d1d; }
