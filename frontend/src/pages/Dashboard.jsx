@@ -247,11 +247,6 @@ export default function Dashboard() {
             </div>
           </Panel>
         </div>
-
-        <p className="text-center text-xs text-gray-600 pt-4">
-          Analysis is AI-generated and for informational purposes only. Please consult a
-          legal professional for advice.
-        </p>
       </div>
     </div>
   );
