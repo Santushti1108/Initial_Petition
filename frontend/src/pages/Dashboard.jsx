@@ -1,20 +1,121 @@
-import { useState, useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useLocation, useNavigate, useSearchParams } from "react-router-dom";
 import { getHistoryItem } from "@/lib/history";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import PageHeader from "../components/PageHeader";
-import { CheckCircle2, XCircle, Info, AlertTriangle } from "lucide-react";
+import ToneRing from "@/components/ToneRing";
+import {
+  ArrowLeft,
+  Scale,
+  FileText,
+  AudioLines,
+  ShieldCheck,
+  AlertTriangle,
+  Landmark,
+  CheckCircle2,
+  XCircle,
+  CircleAlert,
+} from "lucide-react";
 
+const SECTION_LABELS = {
+  title: "Title",
+  jurisdiction: "Jurisdiction",
+  parties: "Parties",
+  facts: "Facts of the Case",
+  grounds: "Grounds",
+  legal_provisions: "Legal Provisions",
+  prayer: "Prayer/Relief",
+  verification: "Affidavit",
+  limitation: "Limitation",
+  documents_list: "List of Documents",
+  annexures: "Annexures",
+};
 
+const STRUCTURE_ORDER = [
+  "title",
+  "jurisdiction",
+  "parties",
+  "facts",
+  "grounds",
+  "legal_provisions",
+  "prayer",
+  "verification",
+  "limitation",
+  "documents_list",
+  "annexures",
+];
 
-function scoreColor(score) {
-  if (score >= 70) return "text-green-400";
-  if (score >= 45) return "text-yellow-400";
-  return "text-red-400";
+function buildStructureChecklist(sections, critical_elements) {
+  const found = new Set(sections?.found || []);
+  const present = critical_elements?.present || {};
+
+  const checks = {
+    title: found.has("parties") && found.has("jurisdiction"),
+    jurisdiction: found.has("jurisdiction"),
+    parties: found.has("parties"),
+    facts: found.has("facts"),
+    grounds: found.has("grounds"),
+    legal_provisions: found.has("legal_provisions"),
+    prayer: found.has("prayer"),
+    verification: found.has("verification"),
+    limitation: "limitation" in present,
+    documents_list: false,
+    annexures: false,
+  };
+
+  return STRUCTURE_ORDER.map((key) => ({
+    label: SECTION_LABELS[key],
+    ok: checks[key],
+  }));
+}
+
+function getToneDescription(sentiment, pct) {
+  if (sentiment?.overall === "negative" || (sentiment?.negative_pct ?? 0) > 40) {
+    return "The petition uses strongly negative or accusatory language that may affect how the court receives the arguments.";
+  }
+  if (pct >= 25 || sentiment?.overall === "positive") {
+    return "The petition conveys a neutral to positive tone with proper legal language and respectful presentation.";
+  }
+  return "The petition conveys a largely neutral legal tone with mixed argumentative language throughout.";
+}
+
+function Panel({ icon: Icon, title, children, className = "" }) {
+  return (
+    <div
+      className={`rounded-2xl border border-[#1f1f1f] bg-gradient-to-br from-[#141414] to-[#0c0c0c] p-6 ${className}`}
+    >
+      <div className="flex items-center gap-2 mb-5">
+        <Icon className="w-5 h-5 text-[#facc15]" strokeWidth={1.5} />
+        <h2 className="text-lg font-semibold text-[#facc15]">{title}</h2>
+      </div>
+      {children}
+    </div>
+  );
+}
+
+function TwoColumnList({ items, variant = "success" }) {
+  const mid = Math.ceil(items.length / 2);
+  const cols = [items.slice(0, mid), items.slice(mid)];
+
+  return (
+    <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-3">
+      {cols.map((col, ci) => (
+        <div key={ci} className="space-y-3">
+          {col.map((text, i) => (
+            <div key={i} className="flex items-start gap-2.5 text-sm text-gray-400">
+              {variant === "success" ? (
+                <CheckCircle2 className="w-4 h-4 text-green-500 shrink-0 mt-0.5" />
+              ) : (
+                <CircleAlert className="w-4 h-4 text-red-500 shrink-0 mt-0.5" />
+              )}
+              <span className="leading-snug">{text}</span>
+            </div>
+          ))}
+        </div>
+      ))}
+    </div>
+  );
 }
 
 export default function Dashboard() {
-  const [showMore, setShowMore] = useState(false);
   const [analysis, setAnalysis] = useState(null);
   const [fileName, setFileName] = useState("");
   const { state } = useLocation();
@@ -43,152 +144,115 @@ export default function Dashboard() {
 
   if (!analysis) return null;
 
-  const { summary, sentiment, sections, viability, legal_provisions, stats } = analysis;
+  const { summary, sentiment, sections, viability, critical_elements } = analysis;
+  const score = viability?.score ?? 0;
   const favorPct = Math.round(sentiment?.positive_pct || 0);
+  const structureItems = buildStructureChecklist(sections, critical_elements);
+  const strengths = viability?.strengths || [];
+  const issues = viability?.issues || [];
 
   return (
-    <div className="min-h-screen p-12 space-y-10 text-white max-w-5xl mx-auto">
-      <PageHeader title="Analysis Dashboard" backLink="/upload" backToPageLabel="Back to Upload" />
+    <div className="min-h-screen bg-black text-white pb-16">
+      <div className="max-w-6xl mx-auto px-6 md:px-10 py-8 space-y-6">
+        <button
+          onClick={() => navigate("/upload")}
+          className="flex items-center gap-2 text-sm text-gray-500 hover:text-[#facc15] transition mb-2"
+        >
+          <ArrowLeft className="w-4 h-4" />
+          Back to Upload
+        </button>
 
-      {fileName && (
-        <p className="text-gray-500 text-sm -mt-8">{fileName}</p>
-      )}
+        {fileName && (
+          <p className="text-xs text-gray-600 uppercase tracking-wider">{fileName}</p>
+        )}
 
-      {/* Viability score */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <Card className="text-center md:col-span-1">
-          <CardContent className="py-10 flex flex-col items-center gap-2">
-            <p className={`text-5xl font-bold ${scoreColor(viability.score)}`}>
-              {viability.score}
-            </p>
-            <p className="text-gray-400 text-sm">Court viability / 100</p>
-            <span className="mt-2 px-3 py-1 rounded-full text-xs font-medium bg-yellow-500/10 text-yellow-500 border border-yellow-500/30">
-              {viability.verdict}
-            </span>
-          </CardContent>
-        </Card>
-
-        <Card className="md:col-span-2">
-          <CardHeader>
-            <CardTitle className="text-[var(--primary)]">Assessment</CardTitle>
-          </CardHeader>
-          <CardContent className="text-gray-300 text-sm leading-relaxed">
-            {viability.verdict_detail}
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* Summary */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-[var(--primary)]">Petition Summary</CardTitle>
-        </CardHeader>
-        <CardContent className="text-gray-300 text-sm leading-relaxed">
-          {summary}
-        </CardContent>
-      </Card>
-
-      {/* Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <Card className="text-center">
-          <CardContent className="py-10 flex flex-col items-center gap-3">
-            <Info className="w-8 h-8 text-gray-400" />
-            <p className="text-5xl font-bold text-[var(--primary)]">{favorPct}%</p>
-            <p className="text-gray-400">positive tone</p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="flex flex-row items-center gap-2">
-            <CheckCircle2 className="w-6 h-6 text-green-500" />
-            <CardTitle className="text-[var(--primary)]">Strengths</CardTitle>
-          </CardHeader>
-          <CardContent className="text-gray-400 text-sm space-y-2">
-            {viability.strengths?.length ? (
-              viability.strengths.slice(0, showMore ? undefined : 4).map((s, i) => (
-                <p key={i}>• {s}</p>
-              ))
-            ) : (
-              <p>No strengths identified</p>
-            )}
-          </CardContent>
-        </Card>
-      </div>
-
-      <button
-        onClick={() => setShowMore(!showMore)}
-        className="bg-[var(--primary)] text-black px-6 py-2 rounded-full font-semibold hover:opacity-90 transition"
-      >
-        {showMore ? "Show less" : "Show more"}
-      </button>
-
-      {showMore && (
-        <div className="space-y-6">
-          <Card>
-            <CardHeader className="flex flex-row items-center gap-2">
-              <AlertTriangle className="w-6 h-6 text-red-400" />
-              <CardTitle className="text-[var(--primary)]">Issues to fix</CardTitle>
-            </CardHeader>
-            <CardContent className="text-gray-400 text-sm space-y-2">
-              {viability.issues?.map((issue, i) => (
-                <p key={i}>• {issue}</p>
-              ))}
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-[var(--primary)]">Petition structure</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="grid grid-cols-2 gap-2">
-                {[...(sections.found || []).map((s) => ({ name: s, ok: true })),
-                  ...(sections.missing || []).map((s) => ({ name: s, ok: false }))]
-                  .map(({ name, ok }) => (
-                    <div key={name} className="flex items-center gap-2 text-sm text-gray-400">
-                      {ok ? (
-                        <CheckCircle2 className="w-4 h-4 text-green-500 shrink-0" />
-                      ) : (
-                        <XCircle className="w-4 h-4 text-red-500 shrink-0" />
-                      )}
-                      <span className="capitalize">{name.replace(/_/g, " ")}</span>
-                    </div>
-                  ))}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <Panel icon={Scale} title="Court Viability Score">
+            <div className="flex flex-col items-center text-center py-2">
+              <p className="text-7xl font-serif font-bold text-[#facc15] leading-none">
+                {score}
+              </p>
+              <p className="text-gray-500 text-sm mt-1">/ 100</p>
+              <div className="w-full max-w-xs h-2 rounded-full bg-[#1f1f1f] mt-6 overflow-hidden">
+                <div
+                  className="h-full rounded-full bg-gradient-to-r from-[#facc15] to-[#f59e0b] transition-all duration-700"
+                  style={{ width: `${score}%` }}
+                />
               </div>
-            </CardContent>
-          </Card>
+              <span className="mt-5 px-4 py-1.5 rounded-full text-xs font-semibold tracking-wide border border-[#facc15]/50 text-[#facc15] bg-[#facc15]/5">
+                {viability?.verdict}
+              </span>
+            </div>
+          </Panel>
 
-          {legal_provisions?.length > 0 && (
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-[var(--primary)]">Legal provisions cited</CardTitle>
-              </CardHeader>
-              <CardContent className="flex flex-wrap gap-2">
-                {legal_provisions.map((p, i) => (
-                  <span
-                    key={i}
-                    className="px-3 py-1 rounded-full text-xs bg-yellow-500/10 text-yellow-500 border border-yellow-500/20"
-                  >
-                    {p}
-                  </span>
-                ))}
-              </CardContent>
-            </Card>
-          )}
-
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-[var(--primary)]">Document stats</CardTitle>
-            </CardHeader>
-            <CardContent className="text-gray-400 text-sm flex flex-wrap gap-4">
-              <span>{stats.word_count?.toLocaleString()} words</span>
-              <span>{stats.sections_found}/{stats.sections_total} sections</span>
-              <span>{stats.provisions_cited} provisions</span>
-              <span>{stats.cases_cited} citations</span>
-            </CardContent>
-          </Card>
+          <Panel icon={Scale} title="Assessment" className="relative overflow-hidden">
+            <div className="flex gap-4">
+              <p className="text-gray-400 text-sm leading-relaxed flex-1">
+                {viability?.verdict_detail}
+              </p>
+              <div className="hidden sm:flex shrink-0 w-28 h-28 items-center justify-center rounded-xl bg-gradient-to-br from-[#facc15]/20 to-transparent border border-[#facc15]/10">
+                <div className="relative">
+                  <Scale className="w-12 h-12 text-[#facc15]/80" />
+                  <div className="absolute -bottom-2 -right-3 w-8 h-2 bg-amber-900/60 rounded-sm rotate-12" />
+                </div>
+              </div>
+            </div>
+          </Panel>
         </div>
-      )}
+
+        <Panel icon={FileText} title="Petition Summary">
+          <p className="text-gray-400 text-sm leading-relaxed">{summary}</p>
+        </Panel>
+
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <Panel icon={AudioLines} title="Original Tone">
+            <div className="flex items-center gap-8">
+              <ToneRing percent={favorPct} />
+              <p className="text-gray-400 text-sm leading-relaxed">
+                {getToneDescription(sentiment, favorPct)}
+              </p>
+            </div>
+          </Panel>
+
+          <Panel icon={ShieldCheck} title="Strengths">
+            {strengths.length > 0 ? (
+              <TwoColumnList items={strengths} variant="success" />
+            ) : (
+              <p className="text-gray-500 text-sm">No strengths identified</p>
+            )}
+          </Panel>
+        </div>
+
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <Panel icon={AlertTriangle} title="Issues to Fix">
+            {issues.length > 0 ? (
+              <TwoColumnList items={issues} variant="issue" />
+            ) : (
+              <p className="text-gray-500 text-sm">No major issues identified</p>
+            )}
+          </Panel>
+
+          <Panel icon={Landmark} title="Petition Structure">
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-x-4 gap-y-3">
+              {structureItems.map(({ label, ok }) => (
+                <div key={label} className="flex items-center gap-2 text-sm text-gray-400">
+                  {ok ? (
+                    <CheckCircle2 className="w-4 h-4 text-green-500 shrink-0" />
+                  ) : (
+                    <XCircle className="w-4 h-4 text-red-500 shrink-0" />
+                  )}
+                  <span>{label}</span>
+                </div>
+              ))}
+            </div>
+          </Panel>
+        </div>
+
+        <p className="text-center text-xs text-gray-600 pt-4">
+          Analysis is AI-generated and for informational purposes only. Please consult a
+          legal professional for advice.
+        </p>
+      </div>
     </div>
   );
 }
