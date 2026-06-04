@@ -5,6 +5,8 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import PageHeader from "../components/PageHeader";
 import { CheckCircle2, XCircle, Info, AlertTriangle } from "lucide-react";
 
+
+
 function scoreColor(score) {
   if (score >= 70) return "text-green-400";
   if (score >= 45) return "text-yellow-400";

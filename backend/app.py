@@ -39,11 +39,14 @@ def analyze():
         return jsonify({'error': 'Only PDF files are supported'}), 400
 
     try:
-        with tempfile.NamedTemporaryFile(delete=False, suffix='.pdf') as tmp:
-            file.save(tmp.name)
-            text = extract_text_from_pdf(tmp.name)
-            os.unlink(tmp.name)
+        tmp = tempfile.NamedTemporaryFile(delete=False, suffix='.pdf') 
+        tmp_path = tmp.name
+        tmp.close()
 
+        file.save(tmp_path)
+            
+        text = extract_text_from_pdf(tmp_path)
+        
         if not text or len(text.strip()) < 50:
             return jsonify({
                 'error': 'Could not extract meaningful text from the PDF. The file may be scanned/image-based or corrupted.'

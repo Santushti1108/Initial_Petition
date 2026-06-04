@@ -90,18 +90,18 @@ def generate_summary(text, top_n=None):
         if total_sentences <= 5:
             top_n = max(2, total_sentences - 1)
         elif total_sentences <= 15:
-            top_n = max(3, int(total_sentences * 0.25))
+            top_n = max(3, int(total_sentences * 0.6))
         elif total_sentences <= 50:
-            top_n = max(3, int(total_sentences * 0.06))
+            top_n = max(3, int(total_sentences * 0.6))
         else:
-            top_n = min(5, max(3, int(total_sentences * 0.01)))
+            top_n = min(5, max(3, int(total_sentences * 0.6)))
 
     top_sentences = sorted(ranked[:top_n], key=lambda x: x[1])
     summary = " ".join([s[2] for s in top_sentences])
 
-    max_words = 120
-    words = summary.split()
-    if len(words) > max_words:
-        summary = " ".join(words[:max_words]) + "..."
+    # max_words = 280
+    # words = summary.split()
+    # if len(words) > max_words:
+    #     summary = " ".join(words[:max_words]) + "..."
 
     return summary
