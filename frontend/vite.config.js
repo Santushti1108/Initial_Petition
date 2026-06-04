@@ -13,6 +13,19 @@ export default defineConfig({
   server: {
     proxy: {
       "/api": "http://127.0.0.1:5000",
+      "/_/backend": {
+        target: "http://127.0.0.1:5000",
+        rewrite: (path) => path.replace(/^\/_\/backend/, ""),
+      },
+    },
+  },
+  preview: {
+    proxy: {
+      "/api": "http://127.0.0.1:5000",
+      "/_/backend": {
+        target: "http://127.0.0.1:5000",
+        rewrite: (path) => path.replace(/^\/_\/backend/, ""),
+      },
     },
   },
 })
