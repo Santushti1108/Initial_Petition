@@ -4,6 +4,7 @@ from flask import Flask, request, jsonify
 from flask_cors import CORS
 from PyPDF2 import PdfReader
 from analyzer.petition_analyzer import analyze_petition
+from modules.driver_func import predict_petition_outcome
 
 app = Flask(__name__)
 CORS(app)
@@ -53,10 +54,14 @@ def analyze():
             }), 400
 
         result = analyze_petition(text)
+        pred_result = predict_petition_outcome(tmp_path)
 
         if 'error' in result:
             return jsonify(result), 400
-
+        
+        result["prediction"] = pred_result["prediction"]
+        result["confidence"] = pred_result["confidence"]
+        
         result['raw_text_preview'] = text[:500] + ('...' if len(text) > 500 else '')
 
         return jsonify(result)

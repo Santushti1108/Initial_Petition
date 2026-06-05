@@ -1,0 +1,16 @@
+{
+  "model_name": "sentence-transformers/all-MiniLM-L6-v2",
+  "batch_size": 128,
+  "num_records": 19397,
+  "embedding_dim": 384,
+  "files": {
+    "judgments_clean": "judgments_clean.jsonl",
+    "metadata": "metadata.jsonl",
+    "issue_embeddings": "issue_embeddings.npy",
+    "facts_embeddings": "facts_embeddings.npy",
+    "holding_embeddings": "holding_embeddings.npy",
+    "issue_index": "issue_index.faiss",
+    "facts_index": "facts_index.faiss",
+    "holding_index": "holding_index.faiss"
+  }
+}
